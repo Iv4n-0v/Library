@@ -1,8 +1,6 @@
 from typing import  List, Optional
 from sqlmodel import Field,Relationship,SQLModel
 
-
-
 class AutorLibroLink(SQLModel, table=True):
     autor_id: Optional[int]=Field(foreign_key="autor.id", primary_key=True)
     libro_id: Optional[int]=Field(foreign_key="libro.id", primary_key=True)
@@ -14,7 +12,7 @@ class AutorBase(SQLModel):
 
 class Autor(AutorBase, table=True):
   id: int | None=Field(default=None, primary_key=True)
-  libros_id:int=Field(default=None, foreign_key="libro.id")
+  
   libros: List["Libro"]=Relationship(back_populates="autores", link_model=AutorLibroLink)
 
 
@@ -26,5 +24,5 @@ class LibroBase(SQLModel):
 
 class Libro(LibroBase, table=True):
   id: int | None=Field(default=None, primary_key=True)
-  autores_id:int=Field(default=None, foreign_key="autor.id")
+  
   autores:List["Autor"]=Relationship(back_populates="libros", link_model=AutorLibroLink)
