@@ -30,9 +30,13 @@ async def asignar_autor_libro(libro_id:int,autor_id:int,session:SessionDep):
 async def get_libros(session:SessionDep):
    return session.query(Libro).all()
 
-@router.get("/{libro_id}", response_model=Libro)
+@router.get("/{libro_id}", summary="Obtener libro por ID")
 async def get_libro(libro_id:int,session:SessionDep):
-    libro = session.get(Libro,libro_id)
+    libro = session.exec(select(Libro).where(Libro.id == libro_id)).first()
     if not libro:
         raise HTTPException(status_code=404, detail="Libro no encontrado")
-    return libro
+    autores=session.exec(select(Autor).join(AutorLibroLink).where(AutorLibroLink.libro_id==libro_id)).all()
+    return {
+        "libro":{"titulo": libro.titulo, "ISBN":libro.ISBN, "Año de publicación":libro.año_publicacion, "Numero de cópias":libro.numero_copias},
+        "autores":[{"nombre":autor.nombre, "pais_origen":autor.pais_origen, "año_nacimiento":autor.año_nacimiento} for autor in autores]
+    }
