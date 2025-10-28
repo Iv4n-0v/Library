@@ -26,3 +26,7 @@ class Libro(LibroBase, table=True):
   id: int | None=Field(default=None, primary_key=True)
   
   autores:List["Autor"]=Relationship(back_populates="libros", link_model=AutorLibroLink)
+
+class LibroAutor(LibroBase):
+    id: int | None=Field(default=None, primary_key=True)
+    autor_id: int

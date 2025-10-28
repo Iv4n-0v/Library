@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from sqlmodel import select
 from db import SessionDep
-from models import Libro, LibroBase, Autor, AutorLibroLink
+from models import Libro, LibroBase, Autor, AutorLibroLink, LibroAutor
 
 router= APIRouter(tags=["Libros"])
 
@@ -24,7 +24,7 @@ async def asignar_autor_libro(libro_id:int,autor_id:int,session:SessionDep):
     link=AutorLibroLink(autor_id=autor_id, libro_id=libro_id)
     session.add(link)
     session.commit()
-    return {"message":f"Se asignó el Autor ID {autor_id} al Libro ID {libro_id}"}
+    return {"message":f"Se asignó el Autor con ID {autor_id} al Libro ID {libro_id}"}
 
 @router.get("/todos", response_model=list[Libro])
 async def get_libros(session:SessionDep):
@@ -40,3 +40,18 @@ async def get_libro(libro_id:int,session:SessionDep):
         "libro":{"titulo": libro.titulo, "ISBN":libro.ISBN, "Año de publicación":libro.año_publicacion, "Numero de cópias":libro.numero_copias},
         "autores":[{"nombre":autor.nombre, "pais_origen":autor.pais_origen, "año_nacimiento":autor.año_nacimiento} for autor in autores]
     }
+
+
+@router.post("/LibroAutor", response_model=LibroAutor,summary="Crear Libro con Autor")
+async def crear_libro_autor(LibroAutor:LibroAutor, session:SessionDep):
+    nuevo_libro=Libro(titulo=LibroAutor.titulo, ISBN=LibroAutor.ISBN, año_publicacion=LibroAutor.año_publicacion, numero_copias=LibroAutor.numero_copias)
+    if not nuevo_libro:
+        raise HTTPException(status_code=400, detail="No se pudo crear el libro")
+    session.add(nuevo_libro)
+    session.commit()
+    session.refresh(nuevo_libro)
+    link=AutorLibroLink(autor_id=LibroAutor.autor_id, libro_id=nuevo_libro.id)
+    session.add(link)
+    session.commit()
+    return LibroAutor
+
