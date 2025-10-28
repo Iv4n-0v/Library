@@ -50,8 +50,30 @@ async def crear_libro_autor(LibroAutor:LibroAutor, session:SessionDep):
     session.add(nuevo_libro)
     session.commit()
     session.refresh(nuevo_libro)
-    link=AutorLibroLink(autor_id=LibroAutor.autor_id, libro_id=nuevo_libro.id)
+    link=AutorLibroLink(autor_id=LibroAutor.autor_id)
     session.add(link)
     session.commit()
     return LibroAutor
 
+@router.get("/año/{año_publicación}", summary="Obtener el libro por el año de publicación")
+async def get_libro_año(año_publicacion: str,session:SessionDep):
+    libros=session.exec(select(Libro).where(Libro.año_publicacion==año_publicacion)).all()
+    if not libros:
+        raise HTTPException(status_code=404,detail="No se encontraron libros en este año")
+    return{
+        "Libros en el año{año_publicacion}":[{"titulo":libro.titulo, "ISBN":libro.ISBN, "numero_copias":libro.numero_copias} for libro in libros]
+    }
+
+@router.patch("/actualizar/{libro_id}", response_model=Libro, summary="Actualizar información del libro")
+async def actualizar_libro(libro_id:int,libro_actualizar:LibroBase, session:SessionDep):
+    libro=session.get(Libro, libro_id)
+    if not libro:
+        raise HTTPException(status_code=404,detail="No se encontró el libro")
+    libro.titulo=libro_actualizar.titulo
+    libro.ISBN=libro_actualizar.ISBN
+    libro.año_publicacion=libro_actualizar.año_publicacion
+    libro.numero_copias=libro_actualizar.numero_copias
+    session.add(libro)
+    session.commit()
+    session.refresh(libro)
+    return libro
