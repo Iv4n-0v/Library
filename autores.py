@@ -50,5 +50,17 @@ async def get_autores_por_pais(pais_origen:str, session:SessionDep):
          "autores":[{"nombre": autor.nombre, "año_nacimiento": autor.año_nacimiento} for autor in autores]
     }
 
-  
+@router.patch("/actualizar/{autor_id}", response_model=Autor, summary="Actualizar información del autor")
+async def patch_autor(autor_id:int,autor_actualizar:AutorBase,session:SessionDep):
+    autor=session.get(Autor, autor_id)
+    if not autor:
+        raise HTTPException(status_code=404, detail="Autor no encontrado")
+    autor.nombre=autor_actualizar.nombre
+    autor.pais_origen=autor_actualizar.pais_origen
+    autor.año_nacimiento=autor_actualizar.año_nacimiento
+    session.add(autor)
+    session.commit()
+    session.refresh(autor)
+    return autor
+
 
