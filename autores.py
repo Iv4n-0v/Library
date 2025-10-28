@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from sqlmodel import select
+from sqlmodel import select, delete
 from db import SessionDep
 from models import Autor, AutorBase, Libro, AutorLibroLink
 
@@ -63,4 +63,13 @@ async def patch_autor(autor_id:int,autor_actualizar:AutorBase,session:SessionDep
     session.refresh(autor)
     return autor
 
-
+@router.delete("/eliminar/{autor_id}", summary="Eliminar autor por su ID")
+async def delete_autor(autor_id:int,session:SessionDep):
+   autor=session.get(Autor, autor_id)
+   if not autor:
+      raise HTTPException(status_code=404,detail="No se encontró el autor")
+   autor.active=False
+   session.exec(delete(AutorLibroLink).where(AutorLibroLink.autor_id==autor_id))
+   session.add(autor)
+   session.commit()
+   return {"message":f"El autor ID {autor_id} ha sido eliminado correctamente"}

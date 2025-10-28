@@ -12,7 +12,7 @@ class AutorBase(SQLModel):
 
 class Autor(AutorBase, table=True):
   id: int | None=Field(default=None, primary_key=True)
-  
+  active: bool = True
   libros: List["Libro"]=Relationship(back_populates="autores", link_model=AutorLibroLink)
 
 
