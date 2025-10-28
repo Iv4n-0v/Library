@@ -24,7 +24,7 @@ class LibroBase(SQLModel):
 
 class Libro(LibroBase, table=True):
   id: int | None=Field(default=None, primary_key=True)
-  
+  active: bool=True
   autores:List["Autor"]=Relationship(back_populates="libros", link_model=AutorLibroLink)
 
 class LibroAutor(LibroBase):

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from sqlmodel import select
+from sqlmodel import select,delete
 from db import SessionDep
 from models import Libro, LibroBase, Autor, AutorLibroLink, LibroAutor
 
@@ -10,6 +10,7 @@ async def create_libro(libro: LibroBase, session: SessionDep):
     nuevo_libro=Libro.model_validate(libro)
     if not nuevo_libro:
         raise HTTPException(status_code=400, detail="No se pudo crear el libro")
+    nuevo_libro.active=True
     session.add(nuevo_libro)
     session.commit()
     session.refresh(nuevo_libro)
@@ -77,3 +78,14 @@ async def actualizar_libro(libro_id:int,libro_actualizar:LibroBase, session:Sess
     session.commit()
     session.refresh(libro)
     return libro
+
+@router.delete("/eliminar/{libro_id}", summary="Eliminar un libor por su ID")
+async def delete_libro(libro_id:int,session:SessionDep):
+    libro=session.get(Libro,libro_id)
+    if not libro:
+        raise HTTPException(status_code=404,detail="No se encontró el libro")
+    libro.active=False
+    session.exec(delete(AutorLibroLink).where(AutorLibroLink.libro_id==libro_id))
+    session.add(libro)
+    session.commit()
+    return {"message": f"El libro con ID {libro_id} ha sido eliminado correctamente"}
