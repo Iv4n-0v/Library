@@ -96,8 +96,12 @@ async def delete_libro(libro_id:int,session:SessionDep):
     libro=session.get(Libro,libro_id)
     if not libro:
         raise HTTPException(status_code=404,detail="No se encontró el libro")
-    libro.active=False
+    if libro.numero_copias<=0:
+        raise HTTPException(status_code=400, detail="No se puede eliminar el libro debido a que no tiene copias restantes")
+    libro.numero_copias-=1
+    if libro.numero_copias==0:
+     libro.active=False
     session.exec(delete(AutorLibroLink).where(AutorLibroLink.libro_id==libro_id))
     session.add(libro)
     session.commit()
-    return {"message": f"El libro con ID {libro_id} ha sido eliminado correctamente"}
+    return {"message": f"Una copia del libro con ID {libro_id} ha sido eliminado correctamente"}
