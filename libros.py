@@ -8,8 +8,6 @@ router= APIRouter(tags=["Libros"])
 @router.post("/", response_model=Libro)
 async def create_libro(libro: LibroBase, session: SessionDep):
     nuevo_libro=Libro.model_validate(libro)
-    if not nuevo_libro:
-        raise HTTPException(status_code=400, detail="No se pudo crear el libro")
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==libro.ISBN)).first()
     if libro_existente:
         raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN")
@@ -49,10 +47,8 @@ async def get_libro(libro_id:int,session:SessionDep):
 @router.post("/LibroAutor", response_model=LibroAutor,summary="Crear Libro con Autor")
 async def crear_libro_autor(Libro_Autor:LibroAutor, session:SessionDep):
     nuevo_libro=Libro(titulo=Libro_Autor.titulo, ISBN=Libro_Autor.ISBN, año_publicacion=Libro_Autor.año_publicacion, numero_copias=Libro_Autor.numero_copias, active=True)  
-    if not nuevo_libro:
-        raise HTTPException(status_code=400, detail="No se pudo crear el libro")
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==Libro_Autor.ISBN)).first()
-    if not libro_existente:
+    if libro_existente:
         raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN")
     autor=session.get(Autor,Libro_Autor.autor_id)
     if not autor:
@@ -81,7 +77,7 @@ async def actualizar_libro(libro_id:int,libro_actualizar:LibroBase, session:Sess
         raise HTTPException(status_code=404,detail="No se encontró el libro")
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==libro_actualizar.ISBN, Libro.id!=libro_id)).first()
     if libro_existente:
-        raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN o con el mismo ID")
+        raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN ")
     libro.titulo=libro_actualizar.titulo
     libro.ISBN=libro_actualizar.ISBN
     libro.año_publicacion=libro_actualizar.año_publicacion

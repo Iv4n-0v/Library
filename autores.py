@@ -9,8 +9,6 @@ router = APIRouter(tags=["Autores"])
 @router.post("/", response_model=Autor)
 async def create_autor(autor: AutorBase, session: SessionDep):
     nuevo_autor=Autor.model_validate(autor)
-    if not nuevo_autor:
-        raise HTTPException(status_code=400, detail="No se pudo crear el autor")
     session.add(nuevo_autor)
     session.commit()
     session.refresh(nuevo_autor)
@@ -25,7 +23,7 @@ async def asignar_libro_autor(autor_id:int,libro_id:int,session:SessionDep):
     link=AutorLibroLink(autor_id=autor_id, libro_id=libro_id)
     session.add(link)
     session.commit()
-    return {"message":f"Se asignó el Libro ID {libro_id} al Autor ID {autor_id}"}
+    return {"message":f"Se asignó el Libro con ID {libro_id} al Autor con ID {autor_id}"}
 
 @router.get("/todos", response_model=list[Autor])
 async def get_autores(session: SessionDep):
@@ -45,6 +43,8 @@ async def get_autores(autor_id:int,session:SessionDep):
 @router.get("/pais/{pais_origen}", summary="Obtener autores por país de origen")
 async def get_autores_por_pais(pais_origen:str, session:SessionDep):
     autores=session.exec(select(Autor).where(Autor.pais_origen==pais_origen)).all()
+    if not autores:
+        raise HTTPException(status_code=404, detail="No se encontraron autores de este país")
     return{
          "pais_origen": pais_origen,
          "autores":[{"nombre": autor.nombre, "año_nacimiento": autor.año_nacimiento} for autor in autores]
@@ -72,4 +72,4 @@ async def delete_autor(autor_id:int,session:SessionDep):
    session.exec(delete(AutorLibroLink).where(AutorLibroLink.autor_id==autor_id))
    session.add(autor)
    session.commit()
-   return {"message":f"El autor ID {autor_id} ha sido eliminado correctamente"}
+   return {"message":f"El autor con ID {autor_id} ha sido eliminado correctamente"}
