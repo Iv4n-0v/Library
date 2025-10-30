@@ -20,10 +20,13 @@ async def asignar_libro_autor(autor_id:int,libro_id:int,session:SessionDep):
     libro=session.get(Libro,libro_id)
     if not autor or not libro:
      raise HTTPException(status_code=404, detail="Autor o Libro no encontrado")
+    relacion_existente=session.exec(select(AutorLibroLink).where((AutorLibroLink.autor_id==autor_id) & (AutorLibroLink.libro_id==libro_id))).first()
+    if relacion_existente:
+        raise HTTPException(status_code=409, detail="El libro ya está asignado a este autor")
     link=AutorLibroLink(autor_id=autor_id, libro_id=libro_id)
     session.add(link)
     session.commit()
-    return {"message":f"Se asignó el Libro con ID {libro_id} al Autor con ID {autor_id}"}
+    return {"message":f"Se asignó el Libro al Autor"}
 
 @router.get("/todos", response_model=list[Autor])
 async def get_autores(session: SessionDep):

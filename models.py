@@ -29,7 +29,6 @@ class LibroBase(SQLModel):
     ISBN: int | None=Field(default=None, ge=1000000000000, le=9999999999999, description="Número ISBN del libro")
     año_publicacion: int | None=Field(default=None, ge=1800, le=2025, description="Año de publicación del libro")
     numero_copias: int | None=Field(default=None, ge=1, description="Número de copias disponibles del libro")
-
     @field_validator("año_publicacion")
     def validar_año_publicacion(cls, v):
         if v and (v < 1800 or v > 2025):
