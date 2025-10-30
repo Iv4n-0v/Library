@@ -10,7 +10,7 @@ async def create_libro(libro: LibroBase, session: SessionDep):
     nuevo_libro=Libro.model_validate(libro)
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==libro.ISBN)).first()
     if libro_existente:
-        raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN")
+        raise HTTPException(status_code=409, detail="Ya existe un libro con este ISBN")
     nuevo_libro.active=True
     session.add(nuevo_libro)
     session.commit()
@@ -49,7 +49,7 @@ async def crear_libro_autor(Libro_Autor:LibroAutor, session:SessionDep):
     nuevo_libro=Libro(titulo=Libro_Autor.titulo, ISBN=Libro_Autor.ISBN, año_publicacion=Libro_Autor.año_publicacion, numero_copias=Libro_Autor.numero_copias, active=True)  
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==Libro_Autor.ISBN)).first()
     if libro_existente:
-        raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN")
+        raise HTTPException(status_code=409, detail="Ya existe un libro con este ISBN")
     autor=session.get(Autor,Libro_Autor.autor_id)
     if not autor:
         raise HTTPException(status_code=404, detail="Autor no encontrado")
@@ -77,7 +77,7 @@ async def actualizar_libro(libro_id:int,libro_actualizar:LibroBase, session:Sess
         raise HTTPException(status_code=404,detail="No se encontró el libro")
     libro_existente=session.exec(select(Libro).where(Libro.ISBN==libro_actualizar.ISBN, Libro.id!=libro_id)).first()
     if libro_existente:
-        raise HTTPException(status_code=400, detail="Ya existe un libro con este ISBN ")
+        raise HTTPException(status_code=409, detail="Ya existe un libro con este ISBN ")
     libro.titulo=libro_actualizar.titulo
     libro.ISBN=libro_actualizar.ISBN
     libro.año_publicacion=libro_actualizar.año_publicacion
